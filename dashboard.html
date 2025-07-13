@@ -15,18 +15,30 @@
   </div>
 
   <script>
-    firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-        document.getElementById("username").textContent = user.displayName || "Agent";
-      } else {
-        window.location.href = "index.html";
-      }
-    });
+    firebase.auth().onAuthStateChanged(async (user) => {
+  if (user) {
+    document.getElementById("username").textContent = user.displayName || "Agent";
 
-    function logout() {
-      firebase.auth().signOut().then(() => {
-        window.location.href = "index.html";
+    const userRef = db.collection("users").doc(user.uid);
+    const doc = await userRef.get();
+
+    if (!doc.exists) {
+      // Create user entry
+      await userRef.set({
+        displayName: user.displayName,
+        email: user.email,
+        xp: 0,
+        level: 1,
+        questsCompleted: []
       });
+      console.log("New user created:", user.email);
+    } else {
+      console.log("User already exists:", user.email);
+    }
+  } else {
+    window.location.href = "index.html";
+  }
+});;
     }
   </script>
 </body>
